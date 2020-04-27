@@ -47,6 +47,34 @@ def isCSVSorted(filename):
 
 
 # MATH
+"""
+  Interpola en una recta definida por los vectores de longitud 2 `xvalues`, `yvalues` 
+  sobre el punto x  `xint`.
+"""
+def interpolate(xint, xvalues, yvalues):
+  if xint < xvalues[0] or xint > xvalues[1]:
+    raise ValueError("interp tried to extrapolate and that is wrong.")
+  return float(yvalues[0] + (xint - xvalues[0])/(xvalues[1] - xvalues[0]) * (yvalues[1] - yvalues[0]))
+
+"""
+función que interpola los valores de Y2 para matchear con x1, se necesita pasarle el dominio x1 (master) y la función x2 (slave) e y2
+el dominio de x2 tiene que abarcar al de x1 ya que el programa interpola linealmente a y2 y no extrapola
+"""
+def listInterpolate(x1,x2,y2):
+  if min(x1)<min(x2):
+    raise Exception("Mínimo de x1 es menor al mínimo de x2, cambiarlo para que el rango de x2 abarque al de x1. \n") 
+  elif max(x1)>max(x2):
+    raise Exception("Máximo de x1 es mayor al máximo de x2, cambiarlo para que el rango de x2 abarque al de x1. \n")
+  
+  N =len(x1)
+  y2New = [0 for x in range(N)] 
+  
+  for i in range(N):
+    x = x1[i]
+    for j in range(1,len(x2)):
+      if x2[j-1]<= x and x < x2[j]:
+        y2New[i] = interpolate(x, x2[j-1:j+1], y2[j-1:j+1])
+  return y2New
 
 """
 Integrates a (x,y) iterable pair using trapezoidal rule. 
@@ -67,47 +95,30 @@ def Intgrt(xv,yv):
 
 """
   Multiplicamos dos se~nales de iterables, cada una tiene su dominio
-  El output va tener el dominio de la primer lista
+  El output va tener el dominio de la primer lista. por defecto interpola linealmente
+  `interp` bool. Si es falso no interpola
 """
-def listMult(x1,y1,x2,y2):
+def listMult(x1,y1,x2,y2, interp=True):
   N = len(x1)
   if min(x1)>max(x2) or max(x1) < min(x2):
-    print('Dominio de listas no coincidentes')
-    raise
+    raise ValueError('Dominio de listas no coincidentes')
   X = []
   Y = []
   for i in range(N):
     x, y = x1[i], y1[i]
     for j in range(1,len(x2)):
       if x2[j] >= x and x2[j-1] < x:
+        yint = interpolate(x, x2[j-1:j+1],y2[j-1:j+1]) if interp else y2[j]
         X.append(x)
-        Y.append( float(y * y2[j]))
+        Y.append( float(y * yint))
   return X, Y
+
 
 def sin(x):
   return ((e**(1j*x) - e**(-1j*x))/2j).real
 def cos(x):
   return ((e**(1j*x) + e**(-1j*x))/2).real
 
-"""
-función que interpola los valores de Y2 para matchear con x1, se necesita pasarle el dominio x1 (master) y la función x2 (slave) e y2
-el dominio de x2 tiene que abarcar al de x1 ya que el programa interpola linealmente a y2 y no extrapola
-"""
-def interpolate(x1,x2,y2):
-  if min(x1)<min(x2):
-    raise Exception("Mínimo de x1 es menor al mínimo de x2, cambiarlo para que el rango de x2 abarque al de x1. \n") 
-  elif max(x1)>max(x2):
-    raise Exception("Máximo de x1 es mayor al máximo de x2, cambiarlo para que el rango de x2 abarque al de x1. \n")
-  
-  N =len(x1)
-  y2New = [0 for x in range(N)] 
-
-  for i in range(N):
-    x = x1[i]
-    for j in range(1,len(x2)):
-      if x2[j-1]<= x and x < x2[j]:
-        y2New[i] = y2[j-1] + (x - x2[j-1])/(x2[j] - x2[j-1]) * (y2[j] - y2[j-1])
-  return y2New
 
 #EXTRA/unused
 def irradianceToIntensity(IR, altitudeSatellite,areaObsTierra):
@@ -160,3 +171,17 @@ def bridgeNans(lst):
           lst[i] = lst[j]
           break
   return lst
+
+# TESTS!
+dom = [0.01 * i for i in range(1000)]
+xv = dom[200:800]
+yv = [sin(x) for x in xv]
+uv = dom[300:700] # reduzco el dominio de la segunda señal
+vv = [sin(3*x+3.1415/2) for x in uv]
+
+listInterpolate(uv, xv, yv)
+
+X,Y = listMult(xv,yv,uv,vv, interp=False)
+plt.plot(X,Y);plt.title('Demo de listMult()');plt.show()
+
+# print(interp(.2,[0, 2],[20, 40]))
