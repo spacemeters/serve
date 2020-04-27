@@ -89,6 +89,26 @@ def sin(x):
 def cos(x):
   return ((e**(1j*x) + e**(-1j*x))/2).real
 
+"""
+función que interpola los valores de Y2 para matchear con x1, se necesita pasarle el dominio x1 (master) y la función x2 (slave) e y2
+el dominio de x2 tiene que abarcar al de x1 ya que el programa interpola linealmente a y2 y no extrapola
+"""
+def interpolate(x1,x2,y2):
+  if min(x1)<min(x2):
+    raise Exception("Mínimo de x1 es menor al mínimo de x2, cambiarlo para que el rango de x2 abarque al de x1. \n") 
+  elif max(x1)>max(x2):
+    raise Exception("Máximo de x1 es mayor al máximo de x2, cambiarlo para que el rango de x2 abarque al de x1. \n")
+  
+  N =len(x1)
+  y2New = [0 for x in range(N)] 
+
+  for i in range(N):
+    x = x1[i]
+    for j in range(1,len(x2)):
+      if x2[j-1]<= x and x < x2[j]:
+        y2New[i] = y2[j-1] + (x - x2[j-1])/(x2[j] - x2[j-1]) * (y2[j] - y2[j-1])
+  return y2New
+
 #EXTRA/unused
 def irradianceToIntensity(IR, altitudeSatellite,areaObsTierra):
   pi = 3.14159265359
