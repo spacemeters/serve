@@ -132,15 +132,11 @@ def wgetData(url, **args):
 def bridgeNans(lst): 
   N = len(lst)
   for i in range(N):
-    print(i,N)
     if lst[i] != lst[i]:
-      print('Found nan')
       if i == N-1:
-        print('Patch last')
         lst[i] = lst[i-1]
       for j in range(i,N):
         if lst[j] == lst[j]:
-          print('Patched NaN')
           lst[i] = lst[j]
           break
   return lst
