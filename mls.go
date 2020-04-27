@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/exec"
 	"strconv"
 	"strings"
 )
@@ -26,6 +27,11 @@ type endpoint struct { // contains file information
 	contentType  string
 	content      []byte
 	visitCounter int
+	serving      bool
+}
+
+type cloudExec struct {
+
 }
 
 type broadcast struct { // contains information related to server-wide operations
@@ -42,49 +48,71 @@ func main() {
 		portString: ":" + strconv.Itoa(portNumber),
 		subdir:     []string{},
 	}
-
-	PUBLIC.addSubDir(publicDir)
 	PUBLIC.subdir = append(PUBLIC.subdir, publicDir)
-
-	for _, subdir := range PUBLIC.subdir {
-		fileInfos, _ := ioutil.ReadDir(subdir)
-		for i := 0; i < len(fileInfos); i++ {
-			var data []byte
-			var err error
-			if fileInfos[i].IsDir() {
-				continue
-			}
-			if !lazyLoading {
-				data, err = ioutil.ReadFile(subdir + "/" + fileInfos[i].Name())
-				if err != nil {
-					log.Fatal("Failed to read " + fileInfos[i].Name() + "  @  " + subdir)
-				}
-			}
-			PUBLIC.endpoints = append(PUBLIC.endpoints, endpoint{
-				fileInfo:     fileInfos[i],
-				fileName:     fileInfos[i].Name(),
-				dir:          subdir,
-				address:      strings.TrimPrefix(strings.TrimPrefix(subdir, publicDir), "/"),
-				contentType:  getContentType(fileInfos[i].Name()),
-				content:      data,
-				visitCounter: 0,
-			})
-		}
-	}
+	PUBLIC.updatePublicEndpoints()
 
 	if len(PUBLIC.endpoints) <= 0 {
 		log.Fatal("Did not find public directory or no contents")
 	}
 	// Begin SERVER
 	log.Println("Creating endpoints...")
-	for i := 0; i < len(PUBLIC.endpoints); i++ {
-		epPointer := &PUBLIC.endpoints[i]
+	PUBLIC.setHttpHandlers()
+	http.HandleFunc("/gitpulloriginmaster", func(w http.ResponseWriter, request *http.Request) {
+		status := ""
+		w.Header().Add("Content-Type", "text/plain")
+		err := execGitPull()
+		if err != nil {
+			http.Error(w, "Failed execution of git pull.",500)
+			return
+		}
+		status += "Git pull completed sucessfully!\n"
+		PUBLIC.updatePublicEndpoints()
+		status += "updated endpoints!\n"
+		PUBLIC.setHttpHandlers()
+		status += "set handlers!"
+		w.Write([]byte(status))
+	})
+	log.Println("All endpoints created.")
+	log.Println("Starting server on port " + PUBLIC.portString)
+	log.Fatal(http.ListenAndServe(PUBLIC.portString, nil))
+}
+
+func execGitPull() error {
+	cmd := exec.Command("git","pull")
+	err := cmd.Start()
+	if err !=nil {
+		log.Println("[ERROR] git pull remote command failed.")
+		return err
+	}
+	log.Println("Making git pull...")
+	err = cmd.Wait()
+	if err != nil {
+		log.Println("[ERROR] git pull failed during command.")
+		return err
+	}
+	log.Println("[INFO] git pull successful!")
+	return nil
+}
+
+func (aPUBLIC *broadcast) setHttpHandlers() {
+	for i := 0; i < len(aPUBLIC.endpoints); i++ {
+		epPointer := &aPUBLIC.endpoints[i]
+		if epPointer.serving { // if endpoint has already been created we shall not overwrite it
+			continue
+		}
 		address := epPointer.fileAddress()
-		log.Println("CREATE " + epPointer.fileName + " accessible by localhost" + PUBLIC.portString + address)
+		log.Println("CREATE " + epPointer.fileName + " accessible by localhost" + aPUBLIC.portString + address)
+		epPointer.serving = true
 		http.HandleFunc(address, func(w http.ResponseWriter, request *http.Request) {
 			w.Header().Add("Content-Type", epPointer.contentType)
 			if lazyLoading {
-				w.Write(epPointer.getFileData())
+				data, err := epPointer.getFileData()
+				if err != nil {
+					log.Println("[ERROR] Failed to read file at ", epPointer.address)
+					http.Error(w, "File missing or not found.",404)
+					return
+				}
+				w.Write(data)
 			} else {
 				w.Write(epPointer.content)
 			}
@@ -92,9 +120,60 @@ func main() {
 			log.Println(epPointer.fileName+" visit #", epPointer.visitCounter, "\nUserAgent:", request.Header["User-Agent"])
 		})
 	}
-	log.Println("All endpoints created.")
-	log.Println("Starting server on port " + PUBLIC.portString)
-	log.Fatal(http.ListenAndServe(PUBLIC.portString, nil))
+}
+
+
+func (aPUBLIC *broadcast) updatePublicEndpoints()  {
+	updatedEndpoints := []endpoint{}
+	aPUBLIC.subdir = []string{publicDir,}
+	aPUBLIC.addSubDir(publicDir)
+
+	for _, subdir := range aPUBLIC.subdir {
+		fileInfos, _ := ioutil.ReadDir(subdir)
+		for i := 0; i < len(fileInfos); i++ {
+			var data []byte
+			var err error
+			var isServing bool
+			if fileInfos[i].IsDir() {
+				continue
+			}
+			if aPUBLIC.endpointExists(fileInfos[i], subdir) {
+				isServing = true
+			}
+			if !lazyLoading {
+				data, err = ioutil.ReadFile(subdir + "/" + fileInfos[i].Name())
+				if err != nil {
+					log.Fatal("Failed to read " + fileInfos[i].Name() + "  @  " + subdir)
+				}
+			}
+			updatedEndpoints = append(updatedEndpoints, endpoint{
+				fileInfo:     fileInfos[i],
+				fileName:     fileInfos[i].Name(),
+				dir:          subdir,
+				address:      strings.TrimPrefix(strings.TrimPrefix(subdir, publicDir), "/"),
+				contentType:  getContentType(fileInfos[i].Name()),
+				content:      data,
+				visitCounter: 0,
+				serving:      isServing,
+			})
+
+		}
+	}
+	aPUBLIC.endpoints = updatedEndpoints
+}
+//
+func (aPUBLIC *broadcast) endpointExists(theFile os.FileInfo, theDir string) bool {
+	var epExists = false // We assume we must update the file
+	for i := 0; i < len(aPUBLIC.endpoints); i++ {
+		aFile := aPUBLIC.endpoints[i].fileInfo
+		if aFile.Name() == theFile.Name() && theDir == aPUBLIC.endpoints[i].dir  {
+			epExists = true
+		}
+		//if !aFile.ModTime().After(theFile.ModTime()) || aFile.Size() == theFile.Size()  {
+		//	epExists = false
+		//}
+	}
+	return epExists
 }
 
 func parseFlags() {
@@ -104,12 +183,13 @@ func parseFlags() {
 	flag.Parse()
 }
 
-func (ep *endpoint) getFileData() []byte {
+func (ep *endpoint) getFileData() ([]byte, error) {
 	data, err := ioutil.ReadFile(ep.filePath())
 	if err != nil {
-		log.Fatal("Failed to read " + ep.fileName + "  @  " + ep.dir)
+		log.Println("Failed to read " + ep.fileName + "  @  " + ep.dir+ ". Maybe file does not exist!")
+		return nil, err
 	}
-	return data
+	return data, nil
 }
 
 func (ep *endpoint) loadContent() {
@@ -221,13 +301,26 @@ func getContentType(filename string) string {
 
 func (bc *broadcast) addSubDir(dirpath string) {
 	currDir, err := ioutil.ReadDir(dirpath)
+
 	if err != nil {
 		log.Fatal("Could not read directory " + dirpath + ".")
 	}
 	for _, fileInfo := range currDir {
 		if fileInfo.IsDir() {
-			bc.subdir = append(bc.subdir, dirpath+"/"+fileInfo.Name())
-			bc.addSubDir(dirpath + "/" + fileInfo.Name())
+			//var isInSubdir bool
+			newDir := dirpath+"/"+fileInfo.Name()
+			//for _, dir := range bc.subdir {
+			//	if dir == newDir {
+			//		isInSubdir = true
+			//		break
+			//	}
+			//}
+			//if isInSubdir {
+			//	continue
+			//}
+			bc.subdir = append(bc.subdir, newDir)
+			bc.addSubDir(newDir)
 		}
 	}
+
 }
