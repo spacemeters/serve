@@ -236,5 +236,3 @@ fig, ax = plt.subplots()
 ax.plot(xv,yv,'o'); ax.plot(xv,yr)
 # plt.show()
 # print(interp(.2,[0, 2],[20, 40]))
-
-xyToCSV(xv,yv,'lol')
