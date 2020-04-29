@@ -158,7 +158,7 @@ def wgetData(url, **args):
     wget(url, args)
 	
 """
-   replaces NaN values with values closest to the right.
+   replaces NaN values with values closest to the right in a list. Returns reconstructed list
 """
 def bridgeNans(lst): 
   N = len(lst)
@@ -172,6 +172,49 @@ def bridgeNans(lst):
           break
   return lst
 
+"""
+   Interpolates gaps in curves where nan values present. returns reconstructed y list.
+"""
+def interpolateNans(xlst, ylst):
+  N = len(ylst)
+  for i in range(N):
+    if ylst[i] != ylst[i]:
+      if i == N-1:
+        ylst[i] = ylst[i-1]
+      if i==0:
+        raise ValueError('First value is nan! Cannot interpolate!')
+      for j in range(i,N):
+        if ylst[j] == ylst[j]:
+          print(xlst[i], [xlst[i-1], xlst[j]], [ylst[i-1], ylst[j]])
+          ylst[i] = interpolate(xlst[i], [xlst[i-1], xlst[j]], [ylst[i-1], ylst[j]])
+          break
+  return ylst
+
+"""
+  Saves x and y values to a simple csv file with 'x' and 'y' headers by default.
+  change header key to a 2 value list with desired header
+"""
+def xyToCSV(xlst, ylst, filename, header=['x','y']):
+  pd.DataFrame({header[0]:xlst, header[1]:ylst}).to_csv(filename, index=False)
+
+"""
+  Une los datos de multiples archivos spectraplot sobre las longitudes de onda que abarcan
+"""
+def joinSpectraPlots(simNames, filename='joinedSpectra.csv'):
+  nuSet = set(); nuList = []; abList = []
+  simColName = simNames[0][0:simNames[0].find('cm')+2].replace(',','/')
+  for i in range(len(simNames)):
+    data = pd.read_csv(simNames[i])
+    nu  = data["nu"]
+    ab  = data[simCol]
+    for j in range(len(nu)):
+      if nu[j] not in nuSet:
+        nuSet.add(nu[j])
+        nuList.append(nu[j])
+        abList.append(ab[j])
+  pd.DataFrame({'nu': nuList,simColName: abList}).sort_values('nu').to_csv(filename,index=False)
+
+
 # TESTS!
 dom = [0.01 * i for i in range(1000)]
 xv = dom[200:800]
@@ -182,6 +225,16 @@ vv = [sin(3*x+3.1415/2) for x in uv]
 listInterpolate(uv, xv, yv)
 
 X,Y = listMult(xv,yv,uv,vv, interp=False)
-plt.plot(X,Y);plt.title('Demo de listMult()');plt.show()
+# plt.plot(X,Y);plt.title('Demo de listMult()');plt.show()
 
+nan = float("NaN")
+
+yv = [5,10,20,nan,nan,70,nan,nan]
+xv = range(len(yv))
+yr = interpolateNans(xv,yv)
+fig, ax = plt.subplots()
+ax.plot(xv,yv,'o'); ax.plot(xv,yr)
+# plt.show()
 # print(interp(.2,[0, 2],[20, 40]))
+
+xyToCSV(xv,yv,'lol')
