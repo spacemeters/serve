@@ -2,7 +2,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import requests
-
+import subprocess as sp
 # Constantes
 
 h = 6.62607015e-34    # Planck constant       # m² kg s⁻¹
@@ -225,3 +225,36 @@ def joinSpectraPlots(simNames, filename='joinedSpectra.csv'):
         nuList.append(nu[j])
         abList.append(ab[j])
   pd.DataFrame({'nu': nuList,simColName: abList}).sort_values('nu').to_csv(filename,index=False)
+
+
+# SHELL
+def sh(cmd, prnt = True): # Shell command execution
+  exitCode = sp.call(cmd, shell = True)
+  if exitCode !=0:
+    if prnt:
+      print('[WRN%d] %s' % (exitCode, cmd))
+    return exitCode
+  else:
+    if prnt:
+      print('[INFO]',cmd)
+    return exitCode
+
+def init6SLinux():
+  try:
+    ec = sh('./build/6SV1.1/sixsV1.1 < ./build/Examples/Example_In_1.txt',prnt=False) # If binary exists don't init
+    if ec != 0:
+      print('Binary not found. Downloading 6S')
+      raise Exception('')
+    print('Binary exists! Not downloading 6S!')
+  except:
+    sh('pip install Py6S')
+    sh('wget -c http://rtwilson.com/downloads/6SV-1.1.tar')
+    sh('mkdir ./source') # Init directory to extract 6S to
+    sh('mv 6SV-1.1.tar ./source/')
+    sh('mkdir -p ./build/6SV/1.1')
+    sh('tar -xvf ./source/6SV-1.1.tar -C ./build')
+    # Edit makefile for compiler
+    sh("sed -i 's/FC      = g77 $(FFLAGS)/FC      = gfortran -std=legacy -ffixed-line-length-none -ffpe-summary=none $(FFLAGS)/g' ./build/6SV1.1/Makefile")
+    sh('make -C ./build/6SV1.1') 
+    sh('./build/6SV1.1/sixsV1.1 < ./build/Examples/Example_In_1.txt') # Test binary
+    sh('ln ./build/6SV1.1/sixsV1.1 /usr/local/bin/sixs') # Add 6S to $PATH environment variable
