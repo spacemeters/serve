@@ -118,7 +118,12 @@ def sin(x):
   return ((e**(1j*x) - e**(-1j*x))/2j).real
 def cos(x):
   return ((e**(1j*x) + e**(-1j*x))/2).real
-
+def sqrt(x):
+  return x**0.5
+def exp(x):
+  return e**x
+def gaussN(x,mu,sd):
+  return 1/sd/sqrt(2*pi) * exp(-.5*((x-mu)/sd)**2 )
 
 #EXTRA/unused
 def irradianceToIntensity(IR, altitudeSatellite,areaObsTierra):
