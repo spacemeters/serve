@@ -110,6 +110,10 @@ def listMult(x1,y1,x2,y2, interp=True):
         X.append(x)
         Y.append( float(y * y2[j-1]))
         break
+      if x == x2[j]:
+        X.append(x)
+        Y.append( float(y * y2[j]))
+        break
       if x <= x2[j] and x >= x2[j-1]:
         yint = interpolate(x, x2[j-1:j+1],y2[j-1:j+1]) if interp else y2[j]
         X.append(x)
