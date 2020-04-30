@@ -164,10 +164,14 @@ def wget(url, **args):
         f.write(r.content)
     if showContents:
     	print(r.content)
-	
-def wgetData(url, **args):
-    args["dir"] = "data"
-    wget(url, args)
+"""
+	Get multiple files
+"""	
+def wgetData(urls,host):
+    for url in urls:
+        folder = url[len(host):url.rfind('/')+1]
+        print(folder)
+        wget(url, dir = folder)
 	
 """
    replaces NaN values with values closest to the right in a list. Returns reconstructed list
