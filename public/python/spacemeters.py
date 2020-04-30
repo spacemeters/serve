@@ -3,6 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import requests
 import subprocess as sp
+from pathlib import Path
 # Constantes
 
 h = 6.62607015e-34    # Planck constant       # m² kg s⁻¹
@@ -154,13 +155,14 @@ name by default (like !wget). Can specify optional keyword arguments:
 """
 def wget(url, **args):
     filename = args["name"] if "name" in args else url[url.rfind('/') + 1::]
-    dir = args["dir"]+filename if "dir" in args else filename
+    dir = args["dir"] if "dir" in args else filename
+    Path(dir).mkdir(parents=True, exist_ok=True)
     showContents = args["prnt"] if "prnt" in args else False
     try:
       r = requests.get(url, allow_redirects=True)
     except:
       raise ValueError('Error retrieving ' + url)
-    with open(dir, 'wb') as f:
+    with open(dir+filename, 'wb') as f:
         f.write(r.content)
     if showContents:
     	print(r.content)
@@ -170,7 +172,6 @@ def wget(url, **args):
 def wgetData(urls,host):
     for url in urls:
         folder = url[len(host):url.rfind('/')+1]
-        print(folder)
         wget(url, dir = folder)
 	
 """
@@ -218,11 +219,14 @@ def xyToCSV(xlst, ylst, filename, header=['x','y']):
 """
 def joinSpectraPlots(simNames, filename='joinedSpectra.csv'):
   nuSet = set(); nuList = []; abList = []
-  simColName = simNames[0][0:simNames[0].find('cm')+2].replace(',','/')
   for i in range(len(simNames)):
+    path = simNames[i]
+    folder = path[:path.rfind('/')+1]
+    filename = simNames[i][len(folder):]
+    simColName = filename[:filename.find('cm')+2].replace(',','/')
     data = pd.read_csv(simNames[i])
     nu  = data["nu"]
-    ab  = data[simCol]
+    ab  = data[simColName]
     for j in range(len(nu)):
       if nu[j] not in nuSet:
         nuSet.add(nu[j])
