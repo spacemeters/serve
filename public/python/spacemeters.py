@@ -222,8 +222,8 @@ def joinSpectraPlots(simNames, filename='joinedSpectra.csv'):
   for i in range(len(simNames)):
     path = simNames[i]
     folder = path[:path.rfind('/')+1]
-    filename = simNames[i][len(folder):]
-    simColName = filename[:filename.find('cm')+2].replace(',','/')
+    fname = simNames[i][len(folder):]
+    simColName = fname[:fname.find('cm')+2].replace(',','/')
     data = pd.read_csv(simNames[i])
     nu  = data["nu"]
     ab  = data[simColName]
