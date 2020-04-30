@@ -155,7 +155,7 @@ name by default (like !wget). Can specify optional keyword arguments:
 def wget(url, **args):
     filename = args["name"] if "name" in args else url[url.rfind('/') + 1::]
     dir = args["dir"]+filename if "dir" in args else filename
-    showContents = args["prnt"] if "dir" in args else False
+    showContents = args["prnt"] if "prnt" in args else False
     try:
       r = requests.get(url, allow_redirects=True)
     except:
