@@ -31,6 +31,13 @@ def frecuencyToWavelength(frec):
     wl.append(1e4/nu)
   return wl
 
+def wavenumberToWavelength(wavenumber):
+  wl = []
+  for i in range(len(wavenumber)):
+    nu = float(wavenumber[i])
+    wl.append(1e4/nu)
+  return wl
+
 #SPECTRA
 def isCSVSorted(filename):
 	dfcheck = pd.read_csv(filename)
