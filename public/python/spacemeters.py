@@ -5,6 +5,7 @@ import requests
 import subprocess as sp
 from pathlib import Path
 from string import Template
+from Py6S import *
 
 # Constantes
 h = 6.62607015e-34    # Planck constant       # m² kg s⁻¹
