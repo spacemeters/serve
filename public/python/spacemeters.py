@@ -208,7 +208,7 @@ name by default (like !wget). Can specify optional keyword arguments:
 """
 def wget(url, **args):
     filename = args["name"] if "name" in args else url[url.rfind('/') + 1::]
-    dir = args["dir"] if "dir" in args else filename
+    dir = args["dir"] + "/" if "dir" in args else ""
     Path(dir).mkdir(parents=True, exist_ok=True)
     showContents = args["prnt"] if "prnt" in args else False
     try:
@@ -223,8 +223,11 @@ def wget(url, **args):
 	Get multiple files
 """
 def wgetData(urls,host):
+    if not isinstance(urls, list):
+        raise ValueError("urls must be in a list!")
     for url in urls:
         folder = url[len(host):url.rfind('/')+1]
+        print(url,folder)
         wget(url, dir = folder)
 
 """
