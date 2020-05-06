@@ -168,6 +168,10 @@ def listMult(x1,y1,x2,y2, interp=True):
         break
   return X, Y
 
+def ceil(x):
+    return int(x//1 + 1) if x != x//1 else int(x//1)
+def floor(x):
+    return int(x//1)
 def sin(x):
   return ((e**(1j*x) - e**(-1j*x))/2j).real
 def cos(x):
@@ -259,6 +263,22 @@ def interpolateNans(xlst, ylst):
 """
 def xyToCSV(xlst, ylst, filename, header=['x','y']):
   pd.DataFrame({header[0]:xlst, header[1]:ylst}).to_csv(filename, index=False)
+
+"""
+    Samples x and y lists at quasi-evenly spaced discrete points.
+    Parameter `samples` describes the sampling points. Useful before spectra plotting
+
+"""
+def sampleXY(X,Y, samples=50):
+    N=len(X)
+    if N != len(Y):
+        raise ValueError("Length of lists should be equal!")
+    if N < samples:
+        raise ValueError("Length of list should be greater than number of samples!")
+    k = (N-1)/(samples-1)
+    Xs = [X[floor(i*k)] for i in range(samples)]
+    Ys = [Y[floor(i*k)] for i in range(samples)]
+    return Xs,Ys
 
 """
   Une los datos de multiples archivos spectraplot sobre las longitudes de onda que abarcan
