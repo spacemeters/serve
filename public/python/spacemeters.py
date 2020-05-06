@@ -45,7 +45,7 @@ def isCSVSorted(filename):
 	ab = dfcheck[simCol]
 	isSorted = True
 	for i in range(1,len(ab)):
-		if  abs(nu[i]-nu[i-1]) > 1 or nu[i] == nu[i-1]: 
+		if  abs(nu[i]-nu[i-1]) > 1 or nu[i] == nu[i-1]:
 			print('index ',i,' detect badness:nu1=',nu[i-1],', nu2=',nu[i],sep='')
 			print(dfcheck[i-2:i+2])
 			isSorted = False
@@ -56,7 +56,7 @@ def isCSVSorted(filename):
 
 # MATH
 """
-  Interpola en una recta definida por los vectores de longitud 2 `xvalues`, `yvalues` 
+  Interpola en una recta definida por los vectores de longitud 2 `xvalues`, `yvalues`
   sobre el punto x  `xint`.
 """
 def interpolate(xint, xvalues, yvalues):
@@ -70,13 +70,13 @@ el dominio de x2 tiene que abarcar al de x1 ya que el programa interpola linealm
 """
 def listInterpolate(x1,x2,y2):
   if min(x1)<min(x2):
-    raise Exception("Mínimo de x1 es menor al mínimo de x2, cambiarlo para que el rango de x2 abarque al de x1. \n") 
+    raise Exception("Mínimo de x1 es menor al mínimo de x2, cambiarlo para que el rango de x2 abarque al de x1. \n")
   elif max(x1)>max(x2):
     raise Exception("Máximo de x1 es mayor al máximo de x2, cambiarlo para que el rango de x2 abarque al de x1. \n")
-  
+
   N =len(x1)
-  y2New = [0 for x in range(N)] 
-  
+  y2New = [0 for x in range(N)]
+
   for i in range(N):
     x = x1[i]
     for j in range(1,len(x2)):
@@ -85,14 +85,14 @@ def listInterpolate(x1,x2,y2):
   return y2New
 
 """
-Integrates a (x,y) iterable pair using trapezoidal rule. 
+Integrates a (x,y) iterable pair using trapezoidal rule.
 Only integrates between xv[0] and xv[len(xv)]. Skips NaN values.
 """
 def Intgrt(xv,yv):
   theSum=0
   N = len(xv)
   for i in range(1,N):
-    dx = xv[i] - xv[i-1]
+    dx = abs(xv[i] - xv[i-1])
     ymax, ymin = max(yv[i-1:i+1]), min(yv[i-1:i+1])
     if ymax!=ymax or ymin!=ymin: #skips nan values
       continue
@@ -175,16 +175,16 @@ def wget(url, **args):
     	print(r.content)
 """
 	Get multiple files
-"""	
+"""
 def wgetData(urls,host):
     for url in urls:
         folder = url[len(host):url.rfind('/')+1]
         wget(url, dir = folder)
-	
+
 """
    replaces NaN values with values closest to the right in a list. Returns reconstructed list
 """
-def bridgeNans(lst): 
+def bridgeNans(lst):
   N = len(lst)
   for i in range(N):
     if lst[i] != lst[i]:
@@ -270,6 +270,6 @@ def init6SLinux():
     sh('tar -xvf ./source/6SV-1.1.tar -C ./build')
     # Edit makefile for compiler
     sh("sed -i 's/FC      = g77 $(FFLAGS)/FC      = gfortran -std=legacy -ffixed-line-length-none -ffpe-summary=none $(FFLAGS)/g' ./build/6SV1.1/Makefile")
-    sh('make -C ./build/6SV1.1') 
+    sh('make -C ./build/6SV1.1')
     sh('./build/6SV1.1/sixsV1.1 < ./build/Examples/Example_In_1.txt') # Test binary
     sh('ln ./build/6SV1.1/sixsV1.1 /usr/local/bin/sixs') # Add 6S to $PATH environment variable
