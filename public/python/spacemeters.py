@@ -130,6 +130,8 @@ Only integrates between xv[0] and xv[len(xv)]. Skips NaN values.
 def Intgrt(xv,yv):
   theSum=0
   N = len(xv)
+  if N != len(yv):
+      raise ValueError("Length of x and y lists should be equal!")
   for i in range(1,N):
     dx = abs(xv[i] - xv[i-1])
     ymax, ymin = max(yv[i-1:i+1]), min(yv[i-1:i+1])
@@ -262,6 +264,8 @@ def interpolateNans(xlst, ylst):
   change header key to a 2 value list with desired header
 """
 def xyToCSV(xlst, ylst, filename, header=['x','y']):
+    if len(xlst) != len(ylst):
+        raise ValueError("Length of x and y lists should be equal!")
   pd.DataFrame({header[0]:xlst, header[1]:ylst}).to_csv(filename, index=False)
 
 """
