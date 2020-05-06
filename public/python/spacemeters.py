@@ -4,8 +4,9 @@ import matplotlib.pyplot as plt
 import requests
 import subprocess as sp
 from pathlib import Path
-# Constantes
+from string import Template
 
+# Constantes
 h = 6.62607015e-34    # Planck constant       # m² kg s⁻¹
 boltz = 1.38064852e-23  # Boltzmann constant  # m² kg s⁻² K⁻¹
 stefan = 5.67e-8 # Stefan-boltzmann constant  # W m⁻² K⁻⁴
@@ -14,6 +15,44 @@ c = 299792458 # Light speed                   # m s⁻¹
 pi = 3.14159265358979323846264338328
 e = 2.7182818284590452353602874713527
 nan = float("NaN")
+
+# SHELL
+def sh(cmd, prnt = True): # Shell command execution
+  exitCode = sp.call(cmd, shell = True)
+  if exitCode !=0:
+    if prnt:
+      print('[WRN%d] %s' % (exitCode, cmd))
+    return exitCode
+  else:
+    if prnt:
+      print('[INFO]',cmd)
+    return exitCode
+
+# INIT 6S
+def build6S():
+    sh('make -C ./build/6SV1.1')
+
+def init6SLinux():
+  try:
+    ec = sh('./build/6SV1.1/sixsV1.1 < ./build/Examples/Example_In_1.txt',prnt=False) # If binary exists don't init
+    if ec != 0:
+      print('Binary not found. Downloading 6S')
+      raise Exception('')
+    print('Binary exists! Not downloading 6S!')
+  except:
+    sh('pip install Py6S')
+    sh('wget -c http://rtwilson.com/downloads/6SV-1.1.tar')
+    sh('mkdir ./source') # Init directory to extract 6S to
+    sh('mv 6SV-1.1.tar ./source/')
+    sh('mkdir -p ./build/6SV/1.1')
+    sh('tar -xvf ./source/6SV-1.1.tar -C ./build')
+    # Edit makefile for compiler
+    sh("sed -i 's/FC      = g77 $(FFLAGS)/FC      = gfortran -std=legacy -ffixed-line-length-none -ffpe-summary=none $(FFLAGS)/g' ./build/6SV1.1/Makefile")
+    build6S()
+    sh('./build/6SV1.1/sixsV1.1 < ./build/Examples/Example_In_1.txt') # Test binary
+    sh('ln ./build/6SV1.1/sixsV1.1 /usr/local/bin/sixs') # Add 6S to $PATH environment variable
+
+# Regular functions
 
 def irradianceToPower(IR, altitudeSatellite , areaObsTierra , areaLente ): #iradiance from earth to power upstream the satellite lens
   RT = 6371e3 # earth radius in meters [m]
@@ -241,35 +280,15 @@ def joinSpectraPlots(simNames, filename='joinedSpectra.csv'):
         abList.append(ab[j])
   pd.DataFrame({'nu': nuList,simColName: abList}).sort_values('nu').to_csv(filename,index=False)
 
+# 6S interaction
 
-# SHELL
-def sh(cmd, prnt = True): # Shell command execution
-  exitCode = sp.call(cmd, shell = True)
-  if exitCode !=0:
-    if prnt:
-      print('[WRN%d] %s' % (exitCode, cmd))
-    return exitCode
-  else:
-    if prnt:
-      print('[INFO]',cmd)
-    return exitCode
-
-def init6SLinux():
-  try:
-    ec = sh('./build/6SV1.1/sixsV1.1 < ./build/Examples/Example_In_1.txt',prnt=False) # If binary exists don't init
-    if ec != 0:
-      print('Binary not found. Downloading 6S')
-      raise Exception('')
-    print('Binary exists! Not downloading 6S!')
-  except:
-    sh('pip install Py6S')
-    sh('wget -c http://rtwilson.com/downloads/6SV-1.1.tar')
-    sh('mkdir ./source') # Init directory to extract 6S to
-    sh('mv 6SV-1.1.tar ./source/')
-    sh('mkdir -p ./build/6SV/1.1')
-    sh('tar -xvf ./source/6SV-1.1.tar -C ./build')
-    # Edit makefile for compiler
-    sh("sed -i 's/FC      = g77 $(FFLAGS)/FC      = gfortran -std=legacy -ffixed-line-length-none -ffpe-summary=none $(FFLAGS)/g' ./build/6SV1.1/Makefile")
-    sh('make -C ./build/6SV1.1')
-    sh('./build/6SV1.1/sixsV1.1 < ./build/Examples/Example_In_1.txt') # Test binary
-    sh('ln ./build/6SV1.1/sixsV1.1 /usr/local/bin/sixs') # Add 6S to $PATH environment variable
+#open the file
+def set6SCH4ppm(ch4ppm):
+    filein = open( 'ABSTRA_template.txt' )
+    src = Template( filein.read() )
+    d = { 'ch4ppm':ch4ppm }
+    result = src.substitute(d)
+    fid = open('build/6SV1.1/ABSTRA.f','w')
+    fid.write(result)
+    build6S()
+    print('CH4 concentration modified: %f[ppm]' % (ch4ppm))
