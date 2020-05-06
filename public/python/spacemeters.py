@@ -266,7 +266,7 @@ def interpolateNans(xlst, ylst):
 def xyToCSV(xlst, ylst, filename, header=['x','y']):
     if len(xlst) != len(ylst):
         raise ValueError("Length of x and y lists should be equal!")
-  pd.DataFrame({header[0]:xlst, header[1]:ylst}).to_csv(filename, index=False)
+    pd.DataFrame({header[0]:xlst, header[1]:ylst}).to_csv(filename, index=False)
 
 """
     Samples x and y lists at quasi-evenly spaced discrete points.
