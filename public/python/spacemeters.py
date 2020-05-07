@@ -273,6 +273,12 @@ def xyToCSV(xlst, ylst, filename, header=['x','y']):
     pd.DataFrame({header[0]:xlst, header[1]:ylst}).to_csv(filename, index=False)
 
 """
+    Saves dict as .csv file. By default `filename`= 'dict.csv'
+"""
+def dictToCSV(dict, filename='dict.csv'):
+    pd.DataFrame(dict).to_csv(filename, index=False)
+
+"""
     Samples x and y lists at quasi-evenly spaced discrete points.
     Parameter `samples` describes the sampling points. Useful before spectra plotting
 
