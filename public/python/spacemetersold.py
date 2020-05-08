@@ -29,63 +29,22 @@ def sh(cmd, prnt = True): # Shell command execution
       print('[INFO]',cmd)
     return exitCode
 
-"""
-Downloads file from internet to director with url endpoint
-name by default (like !wget). Can specify optional keyword arguments:
-
-	`filename`: Filename to be saved as. String.
-	`dir`: Directory to save to. Can be absolute or relative
-	`prnt`: Print file contents. Default False.
-"""
-def wget(url, **args):
-    filename = args["name"] if "name" in args else url[url.rfind('/') + 1::]
-    dir = args["dir"] + "/" if "dir" in args else ""
-    Path(dir).mkdir(parents=True, exist_ok=True)
-    showContents = args["prnt"] if "prnt" in args else False
-    try:
-      r = requests.get(url, allow_redirects=True)
-    except:
-      raise ValueError('Error retrieving ' + url)
-    with open(dir+filename, 'wb') as f:
-        f.write(r.content)
-    if showContents:
-    	print(r.content)
-
 # INIT 6S
 def build6S():
     sh('make -C ./build/6SV1.1')
 
-def init6SWindows():
-  try:
-    ec = sh('\\build\\6SV1.1\\sixsV1.1 < build\\Examples\\Example_In_1.txt',prnt=False)
-    if ec != 0: # If binary exists don't init
-      print('Binary not found. Downloading 6S')
-      raise Exception('')
-    print('Binary exists! Not downloading 6S!')
-  except:
-    sh('pip install Py6S')
-    wget("http://rtwilson.com/downloads/6SV-1.1.tar", dir="source")
-    sh('tar -xvf source\\6SV-1.1.tar -C build')
-    filein = open( 'Makefile_edited.txt' )
-    filereplace = open('build/6SV1.1/Makefile','w')
-    filereplace.write(filein.read())
-    filereplace.close()
-    build6S()
-    ec = sh('build\\6SV1.1\\sixsV1.1 < build\\Examples\\Example_In_1.txt') # Test binary
-    if ec!=0:
-        raise ValueError("6S binary test failed")
-    # sh('ln ./build/6SV1.1/sixsV1.1 /usr/local/bin/sixs') # Add 6S to $PATH environment variable
-
 def init6SLinux():
   try:
-    ec = sh('./build/6SV1.1/sixsV1.1 < ./build/Examples/Example_In_1.txt',prnt=False)
-    if ec != 0: # If binary exists don't init
+    ec = sh('./build/6SV1.1/sixsV1.1 < ./build/Examples/Example_In_1.txt',prnt=False) # If binary exists don't init
+    if ec != 0:
       print('Binary not found. Downloading 6S')
       raise Exception('')
     print('Binary exists! Not downloading 6S!')
   except:
     sh('pip install Py6S')
-    wget("http://rtwilson.com/downloads/6SV-1.1.tar", dir="source")
+    sh('wget -c http://rtwilson.com/downloads/6SV-1.1.tar')
+    sh('mkdir ./source') # Init directory to extract 6S to
+    sh('mv 6SV-1.1.tar ./source/')
     sh('mkdir -p ./build/6SV/1.1')
     sh('tar -xvf ./source/6SV-1.1.tar -C ./build')
     # Edit makefile for compiler
@@ -239,7 +198,27 @@ def irradianceToIntensity(IR, altitudeSatellite,areaObsTierra):
     I.append( factor * IR[i] )
   return I # Returns W/m^2/micrometer
 
+"""
+Downloads file from internet to director with url endpoint
+name by default (like !wget). Can specify optional keyword arguments:
 
+	`filename`: Filename to be saved as. String.
+	`dir`: Directory to save to. Can be absolute or relative
+	`prnt`: Print file contents. Default False.
+"""
+def wget(url, **args):
+    filename = args["name"] if "name" in args else url[url.rfind('/') + 1::]
+    dir = args["dir"] + "/" if "dir" in args else ""
+    Path(dir).mkdir(parents=True, exist_ok=True)
+    showContents = args["prnt"] if "prnt" in args else False
+    try:
+      r = requests.get(url, allow_redirects=True)
+    except:
+      raise ValueError('Error retrieving ' + url)
+    with open(dir+filename, 'wb') as f:
+        f.write(r.content)
+    if showContents:
+    	print(r.content)
 """
 	Get multiple files
 """
