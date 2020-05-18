@@ -97,9 +97,10 @@ def init6SLinux():
 # Regular functions
 
 def irradianceToPower(IR, altitudeSatellite , areaObsTierra , areaLente ): #iradiance from earth to power upstream the satellite lens
-  RT = 6371e3 # earth radius in meters [m]
+  #RT = 6371e3 # earth radius in meters [m]
   h_space = 100e3 # Altitude of space in meters (as 6S sets it)
-  factor = areaObsTierra * areaLente * (RT + altitudeSatellite)**-2
+  #	factor = areaObsTierra * areaLente * (RT + altitudeSatellite)**-2 #OLD
+  factor = areaObsTierra * areaLente * (altitudeSatellite)**-2
   I = []
   for i in range(len(IR)):
     I.append( factor * IR[i] )
@@ -230,10 +231,11 @@ def gaussN(x,mu,sd):
 #EXTRA/unused
 def irradianceToIntensity(IR, altitudeSatellite,areaObsTierra):
   pi = 3.14159265359
-  RT = 6371e3 # earth radius in meters [m]
+  #RT = 6371e3 # earth radius in meters [m] #We no longer need it
   h_space = 100e3 # Altitude of space in meters (as 6S sets it)
-  #  factor = 4*pi*RT**2 * (RT + altitudeSatellite)**-2 # OLD
-  factor = areaObsTierra  * (RT + altitudeSatellite)**-2
+  #  	factor = 4*pi*RT**2 * (RT + altitudeSatellite)**-2 # OLD
+  # 	factor = areaObsTierra  * (RT + altitudeSatellite)**-2 #OLD
+  factor = areaObsTierra * (altitudeSatellite)**-2
   I = []
   for i in range(len(IR)):
     I.append( factor * IR[i] )
