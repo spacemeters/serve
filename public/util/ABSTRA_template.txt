@@ -39,7 +39,8 @@ c     total    absorption carbon mono ttmoca
       real rmpl(34),r2pl(34),r3pl(34),ratpl(10)
       real cch2o(15)
       real wl,xmus,xmuv,uw,uo3,uwus,uo3us,uwpl,uo3pl,uwusp,uo3usp
-      real accu,ah2o,xh,dtcont,utcont,ttcont,methppm
+      real accu,ah2o,xh,dtcont,utcont,ttcont
+      real ch4ppm,n2oppm,coppm,co2ppm,o2cent
       double precision ptest1,ptest
       real dtoxyg,dtniox,dtmeth,dtmoca,dtwava,dtozon,dtdica
       real utniox,utdica,utoxyg,utwava,utozon
@@ -75,7 +76,11 @@ C
       DATA (CCH2O(I),I=1,15)/
      a 0.00,0.19,0.15,0.12,0.10,0.09,0.10,0.12,0.15,0.17,0.20,0.24,
      a 0.28,0.33,0.00/
-      methppm=$ch4ppm
+      ch4ppm=$ch4ppm
+      n2oppm=$n2oppm
+      coppm=$coppm
+      co2ppm=$co2ppm
+      o2cent=$o2cent
       accu=1.E-10
       dtwava=1.
       utwava=1.
@@ -219,12 +224,12 @@ c     mixing ratio calculation for each gaseous constituents
       phi=exp(a(3)*te+a(4)*te2)
       psi=exp(a(5)*te+a(6)*te2)
       if(idgaz.eq.1) rm(k)=wh(k)/(roair*1000.)
-      if(idgaz.eq.2) rm(k)=3.3e-04*roco2/air
-      if(idgaz.eq.3) rm(k)=0.20947*rmo2/air
+      if(idgaz.eq.2) rm(k)=co2ppm*1e-06*roco2/air
+      if(idgaz.eq.3) rm(k)=o2cent*1e-02*rmo2/air
       if(idgaz.eq.4) rm(k)=wo(k)/(roair*1000.)
-      if(idgaz.eq.5) rm(k)=310.e-09*rmn2o/air
-      if(idgaz.eq.6) rm(k)=methppm*1e-06*rmch4/air
-      if(idgaz.eq.7) rm(k)=1.00e-09*rmco /air
+      if(idgaz.eq.5) rm(k)=n2oppm*1e-06*rmn2o/air
+      if(idgaz.eq.6) rm(k)=ch4ppm*1e-06*rmch4/air
+      if(idgaz.eq.7) rm(k)=coppm*1e-06*rmco /air
       r2(k)=rm(k)*phi
       r3(k)=rm(k)*psi
       enddo
@@ -277,12 +282,12 @@ c     mixing ratio for plane calculation for each gaseous constituents
           phi=exp(a(3)*te+a(4)*te2)
           psi=exp(a(5)*te+a(6)*te2)
           if(idgaz.eq.1) rmpl(k)=whpl(k)/(roair*1000.)
-          if(idgaz.eq.2) rmpl(k)=3.3e-04*roco2/air
-          if(idgaz.eq.3) rmpl(k)=0.20947*rmo2/air
+          if(idgaz.eq.2) rmpl(k)=co2ppm*1e-06*roco2/air
+          if(idgaz.eq.3) rmpl(k)=o2cent*1e-02*rmo2/air
           if(idgaz.eq.4) rmpl(k)=wopl(k)/(roair*1000.)
-          if(idgaz.eq.5) rmpl(k)=310.e-09*rmn2o/air
-          if(idgaz.eq.6) rmpl(k)=methppm*1e-06*rmch4/air
-          if(idgaz.eq.7) rmpl(k)=1.00e-09*rmco /air
+          if(idgaz.eq.5) rmpl(k)=n2oppm*1e-06*rmn2o/air
+          if(idgaz.eq.6) rmpl(k)=ch4ppm*1e-06*rmch4/air
+          if(idgaz.eq.7) rmpl(k)=coppm*1e-06*rmco /air
           r2pl(k)=rmpl(k)*phi
           r3pl(k)=rmpl(k)*psi
           enddo

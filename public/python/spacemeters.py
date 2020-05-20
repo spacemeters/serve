@@ -336,16 +336,3 @@ def joinSpectraPlots(simNames, filename='joinedSpectra.csv'):
         nuList.append(nu[j])
         abList.append(ab[j])
   pd.DataFrame({'nu': nuList,simColName: abList}).sort_values('nu').to_csv(filename,index=False)
-
-# 6S interaction
-
-#open the file
-def set6SCH4ppm(ch4ppm):
-    filein = open( 'ABSTRA_template.txt' )
-    src = Template( filein.read() )
-    d = { 'ch4ppm':ch4ppm }
-    result = src.substitute(d)
-    fid = open('build/6SV1.1/ABSTRA.f','w')
-    fid.write(result)
-    build6S()
-    print('CH4 concentration modified: %f[ppm]' % (ch4ppm))
