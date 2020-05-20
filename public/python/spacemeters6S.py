@@ -34,7 +34,3 @@ class concentration:
         if prnt:
             print('Following concentrations have been set:')
             self.print()
-
-c = concentration(ch4ppm=2,n20ppm=3)
-c.print()
-c.set6S(prnt=True)
