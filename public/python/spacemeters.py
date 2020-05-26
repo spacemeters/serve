@@ -57,13 +57,19 @@ def build6S():
 
 def init6SWindows():
   try:
+    ec = sh('make -h', prnt=False)
+    if ec != 0: # We have a compiler
+      print('Fortran compiler not found! Downloading compiler to /source. Please install before continuing!')
+      wget('http://www.cse.yorku.ca/~roumani/fortran/gnu99/Fort99.zip',dir="source")
+      raise SystemExit(0)
     ec = sh('\\build\\6SV1.1\\sixsV1.1 < build\\Examples\\Example_In_1.txt',prnt=False)
     if ec != 0: # If binary exists don't init
-      print('Binary not found. Downloading 6S')
-      raise Exception('')
-    print('Binary exists! Not downloading 6S!')
+        print('Binary not found. Downloading 6S')
+        raise Exception('')
+
   except:
     sh('pip install Py6S')
+    sh('mkdir build\\6SV1.1')
     wget("http://rtwilson.com/downloads/6SV-1.1.tar", dir="source")
     sh('tar -xvf source\\6SV-1.1.tar -C build')
     filein = open( 'Makefile_edited.txt' )
@@ -74,7 +80,7 @@ def init6SWindows():
     ec = sh('build\\6SV1.1\\sixsV1.1 < build\\Examples\\Example_In_1.txt') # Test binary
     if ec!=0:
         raise ValueError("6S binary test failed")
-    # sh('ln ./build/6SV1.1/sixsV1.1 /usr/local/bin/sixs') # Add 6S to $PATH environment variable
+
 
 def init6SLinux():
   try:

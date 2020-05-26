@@ -1,3 +1,7 @@
+__pycache__*
+*build*
+*source*
+
 # Binaries for programs and plugins
 *.exe
 *.exe~
@@ -15,4 +19,5 @@ mls
 # Dependency directories (remove the comment below to include it)
 # vendor/
 ABSTRA_template.txt
+Makefile_edited.txt
 __pycache__*
