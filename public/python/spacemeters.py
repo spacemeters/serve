@@ -72,7 +72,7 @@ def init6SWindows():
     sh('mkdir build\\6SV1.1')
     wget("http://rtwilson.com/downloads/6SV-1.1.tar", dir="source")
     sh('tar -xvf source\\6SV-1.1.tar -C build')
-    filein = open( 'Makefile_edited.txt' )
+    filein = open( 'source\\Makefile_edited.txt' )
     filereplace = open('build/6SV1.1/Makefile','w')
     filereplace.write(filein.read())
     filereplace.close()

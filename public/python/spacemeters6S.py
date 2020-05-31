@@ -24,7 +24,7 @@ class concentration:
         for attr, value in self.__dict__.items():
             print(attr,': ',value, sep='')
     def set6S(self,prnt=False):
-        filein = open( 'ABSTRA_template.txt' )
+        filein = open( 'source/ABSTRA_template.txt' )
         src = Template( filein.read() )
         d = { 'ch4ppm':self.ch4ppm,'coppm':self.coppm,'co2ppm':self.co2ppm,'n2oppm':self.n2oppm,'o2cent':self.o2cent }
         result = src.substitute(d)
