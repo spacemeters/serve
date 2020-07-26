@@ -288,7 +288,6 @@ def interpolateNans(xlst, ylst):
         raise ValueError('First value is nan! Cannot interpolate!')
       for j in range(i,N):
         if ylst[j] == ylst[j]:
-          print(xlst[i], [xlst[i-1], xlst[j]], [ylst[i-1], ylst[j]])
           ylst[i] = interpolate(xlst[i], [xlst[i-1], xlst[j]], [ylst[i-1], ylst[j]])
           break
   return ylst
